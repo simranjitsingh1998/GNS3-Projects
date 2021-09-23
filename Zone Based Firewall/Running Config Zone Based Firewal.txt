@@ -1,0 +1,56 @@
+R1#sh run | s class-map|policy-map|zone
+class-map type inspect match-all TELNET
+ match protocol telnet
+class-map type inspect match-any IN_DMZ
+ match protocol icmp
+class-map type inspect match-any DMZ_IN
+ match protocol icmp
+class-map type inspect match-any TCP_UDP_ICMP
+ match protocol tcp
+ match protocol udp
+ match protocol icmp
+class-map type inspect match-all WWW_TO_CAT2
+ match access-group name WWW_TO_CAT2
+class-map type inspect match-all SSH
+ match protocol ssh
+policy-map type inspect OUT_DMZ
+ class type inspect WWW_TO_CAT2
+  inspect 
+ class class-default
+  drop
+policy-map type inspect OUT_IN
+ class type inspect TELNET
+  drop log
+ class type inspect SSH
+  inspect 
+ class class-default
+  drop
+policy-map type inspect IN_DMZ
+ class type inspect IN_DMZ
+  inspect 
+ class class-default
+  drop
+policy-map type inspect IN_OUT
+ class type inspect TCP_UDP_ICMP
+  inspect 
+ class class-default
+  drop
+policy-map type inspect DMZ_IN
+ class type inspect DMZ_IN
+  inspect 
+zone security IN
+zone security OUT
+zone security DMZ
+zone-pair security OUT_DMZ source OUT destination DMZ
+ service-policy type inspect OUT_DMZ
+zone-pair security OUT_IN source OUT destination IN
+ service-policy type inspect OUT_IN
+zone-pair security IN_OUT source IN destination OUT
+ service-policy type inspect IN_OUT
+zone-pair security IN_DMZ source IN destination DMZ
+ service-policy type inspect IN_DMZ
+zone-pair security DMZ_IN source DMZ destination IN
+ service-policy type inspect IN_DMZ
+ zone-member security DMZ
+ zone-member security OUT
+ zone-member security IN

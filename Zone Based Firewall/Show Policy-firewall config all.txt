@@ -1,0 +1,133 @@
+R1#sh policy-firewall config all 
+Zone: self
+  Description: System defined zone
+
+Zone: IN
+  Member Interfaces:
+    GigabitEthernet0/2
+
+Zone: OUT
+  Member Interfaces:
+    GigabitEthernet0/1
+
+Zone: DMZ
+  Member Interfaces:
+    GigabitEthernet0/0
+
+Zone-pair              : OUT_DMZ (0x51034)
+Source Zone            : OUT
+Destination Zone       : DMZ
+Service-policy inspect : OUT_DMZ
+  Class-map : WWW_TO_CAT2(match-all)
+  Class-id  : 0x1E2801
+   Match access-group name WWW_TO_CAT2
+  Action : inspect
+   Parameter-map : Default
+
+  Class-map : class-default(match-any)
+  Class-id  : 0x639
+   Match any 
+  Action : drop log
+   Parameter-map : Default
+
+Zone-pair              : OUT_IN (0x1F0A24)
+Source Zone            : OUT
+Destination Zone       : IN
+Service-policy inspect : OUT_IN
+  Class-map : TELNET(match-all)
+  Class-id  : 0xE44B81
+   Match protocol telnet
+  Action : drop log
+   Parameter-map : Default
+
+  Class-map : SSH(match-all)
+  Class-id  : 0x58781
+   Match protocol ssh
+  Action : inspect
+   Parameter-map : Default
+          
+  Class-map : class-default(match-any)
+  Class-id  : 0x639
+   Match any 
+  Action : drop log
+   Parameter-map : Default
+
+Zone-pair              : IN_OUT (0x1F1584)
+Source Zone            : IN
+Destination Zone       : OUT
+Service-policy inspect : IN_OUT
+  Class-map : TCP_UDP_ICMP(match-any)
+  Class-id  : 0xBD1381
+   Match protocol tcp
+   Match protocol udp
+   Match protocol icmp
+  Action : inspect
+   Parameter-map : Default
+
+  Class-map : class-default(match-any)
+  Class-id  : 0x639
+   Match any 
+  Action : drop log
+   Parameter-map : Default
+
+Zone-pair              : IN_DMZ (0x99784)
+Source Zone            : IN
+Destination Zone       : DMZ
+Service-policy inspect : IN_DMZ
+  Class-map : IN_DMZ(match-any)
+  Class-id  : 0x101A01
+   Match protocol icmp
+  Action : inspect
+   Parameter-map : Default
+
+  Class-map : class-default(match-any)
+  Class-id  : 0x639
+   Match any 
+  Action : drop log
+   Parameter-map : Default
+
+Zone-pair              : DMZ_IN (0xB9A6E4)
+Source Zone            : DMZ
+Destination Zone       : IN
+Service-policy inspect : IN_DMZ
+  Class-map : IN_DMZ(match-any)
+  Class-id  : 0x101A01
+   Match protocol icmp
+  Action : inspect
+   Parameter-map : Default
+
+  Class-map : class-default(match-any)
+  Class-id  : 0x639
+   Match any 
+  Action : drop log
+   Parameter-map : Default
+
+Parameter-map Config:
+ Global:
+  alert on
+  sessions maximum 2147483647
+  waas disabled
+  l2-transparent dhcp-passthrough disabled
+  log dropped-packets disabled
+  log summary disabled
+  max-incomplete low 18000
+  max-incomplete high 20000
+  one-minute low 2147483647
+  one-minute high 2147483647
+  tcp reset-PSH disabled
+  exporter not-configured
+ Default:
+  audit-trail off
+  alert on
+  max-incomplete low 2147483647 
+  max-incomplete high 2147483647 
+  one-minute low 2147483647
+  one-minute high 2147483647
+  udp idle-time 30
+  icmp idle-time 10
+  dns-timeout 5
+  tcp idle-time 3600
+  tcp finwait-time 5
+  tcp synwait-time 30
+  tcp max-incomplete host 4294967295 block-time 0
+  sessions maximum 2147483647
