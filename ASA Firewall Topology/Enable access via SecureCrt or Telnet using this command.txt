@@ -1,0 +1,1 @@
+copy disk0:/coredumpinfo/coredump.cfg use_ttyS0
